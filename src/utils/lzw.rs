@@ -67,7 +67,7 @@ impl<R: Read> BitReader<R> {
 /// ```
 /// fn main() {
 ///     use std::io::prelude::*;
-///     use mldata::lzw::Decoder;
+///     use mldata::utils::lzw::Decoder;
 ///
 ///     let data: &[u8] = &[0x61, 0xC4, 0x8C, 0x21];
 ///     let mut uncompressor = Decoder::new(data);
