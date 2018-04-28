@@ -1,3 +1,5 @@
+//! 2D view into slices.
+
 use std::fmt;
 use std::fmt::Write;
 use std::ops;

@@ -1,3 +1,5 @@
+//! Simplistic LZW decompression
+
 use std::fs;
 use std::collections::{VecDeque, HashMap};
 use std::io;

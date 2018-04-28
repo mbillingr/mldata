@@ -1,3 +1,5 @@
+//! Our error type.
+
 use std::io;
 
 use app_dirs::AppDirsError;

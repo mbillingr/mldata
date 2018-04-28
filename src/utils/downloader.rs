@@ -1,3 +1,5 @@
+//! Functions for downloading
+
 use std::fs;
 use std::io::{Read, Write};
 use std::path;
@@ -6,6 +8,7 @@ use reqwest;
 
 use utils::error::Error;
 
+/// Make sure a file exists by downloading from given URL if necessary.
 pub fn assure_file<P: AsRef<path::Path>, U: reqwest::IntoUrl>(file: P, url: U) -> Result<(), Error> {
     let file = file.as_ref();
 
