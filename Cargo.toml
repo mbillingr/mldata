@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["mbilling"]
 
 [dependencies]
+app_dirs = "1.2"
+reqwest = "0.8"
