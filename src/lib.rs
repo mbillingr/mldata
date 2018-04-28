@@ -6,4 +6,5 @@ extern crate reqwest;
 pub mod common;
 pub mod utils;
 
+pub mod uci_iris;
 pub mod uci_optdigits;
