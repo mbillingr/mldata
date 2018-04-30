@@ -1,6 +1,7 @@
 //! Load (and download) machine learning data sets
 
 extern crate app_dirs;
+extern crate ndarray;
 extern crate reqwest;
 
 pub mod common;

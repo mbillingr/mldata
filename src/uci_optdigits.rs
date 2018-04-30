@@ -6,10 +6,11 @@ use std::path;
 
 use app_dirs::*;
 
+use ndarray::ArrayView2;
+
 use utils::downloader::assure_file;
 use utils::error::Error;
 use utils::lzw;
-use utils::view2d::View2D;
 
 use common::APP_INFO;
 
@@ -146,12 +147,12 @@ impl Data {
         self.n_samples
     }
 
-    pub fn get_sample(&self, idx: usize) -> (View2D<u8>, u8) {
+    pub fn get_sample(&self, idx: usize) -> (ArrayView2<u8>, u8) {
         assert!(idx < self.n_samples);
 
         let start = (32 * 32 + 1) * idx;
 
-        let x = View2D::new(&self.data[start..start+1024], 32, 32);
+        let x = ArrayView2::from_shape((32, 32), &self.data[start..start+1024]).unwrap();
         let y = self.data[start+1024];
         (x, y)
     }
