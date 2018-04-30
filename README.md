@@ -53,9 +53,14 @@ By default data is loaded from (and downloaded into) the user data directory. Th
 any applications using `mldata` share the same data directory and avoid unnecessary downloads. However, any 
 directory can be specified instead, if the default behavior is not desired.
 
-On windows the data is placed in 
+On Windows the data is placed in 
 ```path
 <user directory>\AppData\Local\mldata
+```
+
+On Linux (Arch Linux in my particular case) the data is placed it
+```path
+~/.local/share/mldata/
 ```
 
 ## Help Wanted
