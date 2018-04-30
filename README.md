@@ -1,5 +1,5 @@
 # mldata
-Rust crate for downloading and caching machine learning data sets.
+Rust crate for loading machine learning data sets.
 
 **Current status: in preparation**
 
