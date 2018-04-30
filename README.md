@@ -44,6 +44,10 @@ fn main() {
 }
 ```
 
+## Available Data Sets
+- [Iris](https://archive.ics.uci.edu/ml/datasets/iris)
+- [Optical Recognition of Handwritten Digits](https://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits)
+
 ## Cache
 By default data is loaded from (and downloaded into) the user data directory. This has the advantage, that 
 any applications using `mldata` share the same data directory and avoid unnecessary downloads. However, any 
@@ -58,7 +62,7 @@ On windows the data is placed in
 The repository is hosted at [github](https://github.com/mbillingr/mldata). Issues and Pullrequest welcome!
 
 Contributions in the following areas are currently most welcome:
-- All kind of pull requests, especiallly more data sets.
+- All kind of pull requests, especiallly additional data sets.
 - Suggestions on API design
 - Suggestions how to unify access to diverse data sets (float, integer, categorical variables; classification/regression/etc.;)
 
