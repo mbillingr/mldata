@@ -5,13 +5,13 @@ use std::io::Read;
 use std::path;
 
 use app_dirs::*;
-
-use ndarray::ArrayView2;
+use ndarray::{Array2, ArrayView2, ShapeBuilder, Zip};
 
 use utils::downloader::assure_file;
 use utils::error::Error;
 use utils::lzw;
 
+use canonical::CanonicalData;
 use common::APP_INFO;
 
 /// Configure the loader for the data set.
@@ -158,9 +158,25 @@ impl Data {
     }
 }
 
+impl CanonicalData for Data {
+    fn to_canonical(&self) -> (Array2<f64>, Array2<f64>) {
+        let x8 = ArrayView2::from_shape((self.n_samples, 1024).strides((1025, 1)), &self.data).unwrap();
+        let y8 = ArrayView2::from_shape((self.n_samples, 1).strides((1025, 1)), &self.data[1024..]).unwrap();
+
+        let mut x = Array2::zeros((self.n_samples, 1024));
+        let mut y = Array2::zeros((self.n_samples, 1));
+
+        Zip::from(&mut x).and(&x8).apply(|out, &inp| *out = inp as f64);
+        Zip::from(&mut y).and(&y8).apply(|out, &inp| *out = inp as f64);
+
+        (x, y)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
+    use std::hash::{Hash, SipHasher, Hasher};
     use super::*;
 
     #[test]
@@ -178,5 +194,32 @@ mod tests {
         // check class labels of a few specific samples
         assert_eq!(tra.get_sample(1).1, 0);
         assert_eq!(tra.get_sample(1933).1, 8);
+    }
+
+    fn checksum<'a, I: Iterator<Item=&'a f64>>(iter: I) -> u64 {
+        let mut s = SipHasher::new();
+        for &x in iter {
+            (x as i64).hash(&mut s);
+        }
+        s.finish()
+    }
+
+    #[test]
+    fn canonical() {
+        let data = DataSet::new().download(false).create().unwrap();
+        let (x_test, y_test) = data.load_testing_data().unwrap().into_canonical();
+        assert_eq!(x_test.shape(), [946, 32 * 32]);
+        assert_eq!(y_test.shape(), [946, 1]);
+        assert_eq!(checksum(x_test.slice(s![42, ..]).iter()), 0xe0004a44f49536d7);
+        assert_eq!(y_test[[1, 0]], 6.0);
+        assert_eq!(y_test[[945, 0]], 5.0);
+
+
+        let  (x_train, y_train) = data.load_training_data().unwrap().into_canonical();
+        assert_eq!(x_train.shape(), [1934, 32 * 32]);
+        assert_eq!(y_train.shape(), [1934, 1]);
+        assert_eq!(checksum(x_train.slice(s![42, ..]).iter()), 0x14e7c595c4d74935);
+        assert_eq!(y_train[[1, 0]], 0.0);
+        assert_eq!(y_train[[1933, 0]], 8.0);
     }
 }

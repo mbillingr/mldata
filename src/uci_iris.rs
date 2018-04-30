@@ -5,10 +5,12 @@ use std::io::{BufRead, BufReader, Read};
 use std::path;
 
 use app_dirs::*;
+use ndarray::Array2;
 
 use utils::downloader::assure_file;
 use utils::error::Error;
 
+use canonical::CanonicalData;
 use common::APP_INFO;
 
 /// Configure the loader for the data set.
@@ -149,6 +151,16 @@ impl Data {
     }
 }
 
+impl CanonicalData for Data {
+    fn to_canonical(&self) -> (Array2<f64>, Array2<f64>) {
+        let x_tmp = self.x.iter().map(|f| *f as f64).collect();
+        let y_tmp = self.y.iter().map(|f| *f as usize as f64).collect();
+        let x = Array2::from_shape_vec((self.n_samples, 4), x_tmp).unwrap();
+        let y = Array2::from_shape_vec((self.n_samples, 1), y_tmp).unwrap();
+        (x, y)
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -163,5 +175,19 @@ mod tests {
         assert_eq!(tst.get_sample(25).1, Iris::Setosa);
         assert_eq!(tst.get_sample(75).1, Iris::Versicolor);
         assert_eq!(tst.get_sample(125).1, Iris::Virginica);
+    }
+
+    #[test]
+    fn canonical() {
+        let data = DataSet::new().download(false).create().unwrap();
+
+        let (x, y) = data.load_data().unwrap().into_canonical();
+        assert_eq!(x.shape(), [150, 4]);
+        assert_eq!(y.shape(), [150, 1]);
+
+        // check class labels of a few specific samples
+        assert_eq!(y[[25, 0]], 0.0);
+        assert_eq!(y[[75, 0]], 1.0);
+        assert_eq!(y[[125, 0]], 2.0);
     }
 }
