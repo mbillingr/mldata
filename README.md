@@ -59,18 +59,18 @@ On Windows the data is placed in
 <user directory>\AppData\Local\mldata
 ```
 
-On Linux (Arch Linux in my particular case) the data is placed it
+On Linux (Arch Linux in my particular case) the data is placed in
 ```path
 ~/.local/share/mldata/
 ```
 
 ## Help Wanted
-The repository is hosted at [github](https://github.com/mbillingr/mldata). Issues and Pullrequest welcome!
+The repository is hosted at [github](https://github.com/mbillingr/mldata). Issues and pull request welcome!
 
 Contributions in the following areas are currently most welcome:
 - All kind of pull requests, especiallly additional data sets.
 - Suggestions on API design
-- Suggestions how to unify access to diverse data sets (float, integer, categorical variables; classification/regression/etc.;)
+- Suggestions how to unify access to diverse data sets (float, integer, categorical variables; classification/regression/etc.)
 
 ## License
 MIT
