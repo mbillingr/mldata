@@ -45,6 +45,7 @@ fn main() {
 ```
 
 ## Available Data Sets
+- [Auto MPG](http://archive.ics.uci.edu/ml/datasets/Auto+MPG)
 - [Iris](https://archive.ics.uci.edu/ml/datasets/iris)
 - [Optical Recognition of Handwritten Digits](https://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits)
 
