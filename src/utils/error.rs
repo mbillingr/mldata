@@ -5,10 +5,13 @@ use std::io;
 use app_dirs::AppDirsError;
 use reqwest;
 
+use utils::hdf5;
+
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
     Download(reqwest::Error),
+    Hdf5Error(hdf5::Error),
     Internal,
 }
 
@@ -17,6 +20,15 @@ impl From<AppDirsError> for Error {
         match err {
             AppDirsError::Io(e) => Error::Io(e),
             _ => Error::Internal,
+        }
+    }
+}
+
+impl From<hdf5::Error> for Error {
+    fn from(err: hdf5::Error) -> Error {
+        match err {
+            hdf5::Error::IoError(ioe) => Error::Io(ioe),
+            _ => Error::Hdf5Error(err)
         }
     }
 }
