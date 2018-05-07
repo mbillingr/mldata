@@ -18,7 +18,7 @@ pub mod canonical;
 pub mod common;
 pub mod utils;
 
-pub mod mldata_org;
+pub mod mldata_auto_mpg;
 pub mod uci_auto_mpg;
 pub mod uci_iris;
 pub mod uci_optdigits;

@@ -1,14 +1,15 @@
-//! The "Auto MPG" data set.
+//! The "Auto MPG" data set from mldata.org.
 
 use std::fs;
-use std::io::{BufRead, BufReader, Read};
 use std::path;
 
 use app_dirs::*;
-use ndarray::Array2;
+use ndarray::{Array2, Zip};
 
 use utils::downloader::assure_file;
 use utils::error::Error;
+use utils::hdf5;
+use utils::hdf5::DynamicArray;
 
 use canonical::CanonicalData;
 use common::APP_INFO;
@@ -24,7 +25,7 @@ pub struct DataSet {
 impl DataSet {
     pub fn new() -> Self {
         DataSet {
-            data_root: get_app_dir(AppDataType::UserData, &APP_INFO, "UCI/auto_mpg").unwrap(),
+            data_root: get_app_dir(AppDataType::UserData, &APP_INFO, "mldata.org").unwrap(),
             download: true,
         }
     }
@@ -51,7 +52,6 @@ impl DataSet {
 /// set all options in the arguments.
 pub struct DataSetLoader {
     data_file: path::PathBuf,
-    info_file: path::PathBuf,
 }
 
 impl DataSetLoader {
@@ -60,67 +60,65 @@ impl DataSetLoader {
         let data_path = data_path.as_ref();
         fs::create_dir_all(data_path)?;
 
-        let data_file = data_path.join("auto_mpg.data");
-        let info_file = data_path.join("auto_mpg.names");
+        let data_file = data_path.join("uci-20070111-autompg.hdf5");
 
         if download {
-            assure_file(&data_file, "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data")?;
-            assure_file(&info_file, "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.names")?;
+            assure_file(&data_file, "http://mldata.org/repository/data/download/uci-20070111-autompg")?;
         }
 
         Ok(DataSetLoader{
             data_file,
-            info_file,
         })
     }
 
-    pub fn load_info(&self) -> Result<String, Error> {
-        let mut file = fs::File::open(&self.info_file)?;
-
-        let mut info = String::new();
-        file.read_to_string(&mut info)?;
-
-        Ok(info)
-    }
-
     pub fn load_data(&self) -> Result<Data, Error> {
-        let input = BufReader::new(fs::File::open(&self.data_file)?);
+        let file = hdf5::File::open(&self.data_file)?;
+
+        let int0 = if let DynamicArray::Int32(arr) = file.dataset("/data/int0")?.read()? {
+            arr
+        } else {
+            return Err(Error::Internal)
+        };
+
+        let double1 = if let DynamicArray::Float64(arr) = file.dataset("/data/double1")?.read()? {
+            arr
+        } else {
+            return Err(Error::Internal)
+        };
+
+        let int2 = if let DynamicArray::Int32(arr) = file.dataset("/data/int2")?.read()? {
+            arr
+        } else {
+            return Err(Error::Internal)
+        };
 
         let mut x = Vec::new();
         let mut y = Vec::new();
 
-        for line in input.lines() {
-            let line = line?;
-            if line.is_empty() {
-                continue
-            }
+        Zip::from(int0.gencolumns())
+            .and(&double1)
+            .and(int2.gencolumns())
+            .apply(|i0, d1, i2| {
+                let yi = TargetVar {
+                    mpg: i2[2],
+                };
 
-            let mut cols = line.split_whitespace();
+                let xi = FeatureRow {
+                    cylinders: i0[0],
+                    displacement: i0[1],
+                    horsepower: match i0[2] {
+                        -2147483648 => ::std::f64::NAN,
+                        nr => nr as f64,
+                    },
+                    weight: i0[3],
+                    acceleration: *d1,
+                    model_year: i2[0],
+                    origin: i2[1],
+                };
 
-            let yi = TargetVar {
-                mpg: cols.next().unwrap().parse().unwrap(),
-            };
-
-            let xi = FeatureRow {
-                cylinders: cols.next().unwrap().parse().unwrap(),
-                displacement: cols.next().unwrap().parse().unwrap(),
-                horsepower: match cols.next().unwrap() {
-                    "?" => ::std::f32::NAN,
-                    nr => nr.parse().unwrap(),
-                },
-                weight: cols.next().unwrap().parse().unwrap(),
-                acceleration: cols.next().unwrap().parse().unwrap(),
-                model_year: cols.next().unwrap().parse().unwrap(),
-                origin: cols.next().unwrap().parse().unwrap(),
-                car_name: {
-                    let name = cols.collect::<Vec<_>>().join(" ");
-                    name[1..name.len()-1].to_owned()  // remove enclosing "s
-                }
-            };
-
-            x.push(xi);
-            y.push(yi);
-        }
+                x.push(xi);
+                y.push(yi);
+            });
 
         Ok(Data::from(x, y))
     }
@@ -128,19 +126,18 @@ impl DataSetLoader {
 
 #[derive(Debug, PartialEq)]
 pub struct FeatureRow {
-    pub cylinders: u8,
-    pub displacement: f32,
-    pub horsepower: f32,
-    pub weight: f32,
-    pub acceleration: f32,
-    pub model_year: u8,
-    pub origin: u8,
-    pub car_name: String,
+    pub cylinders: i32,
+    pub displacement: i32,
+    pub horsepower: f64,
+    pub weight: i32,
+    pub acceleration: f64,
+    pub model_year: i32,
+    pub origin: i32,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct TargetVar {
-    pub mpg: f32,
+    pub mpg: i32,
 }
 
 /// In-memory representation of the data
@@ -201,16 +198,15 @@ mod tests {
         assert_eq!(tst.get_sample(41), (
             &FeatureRow {
                 cylinders: 8,
-                displacement: 318.0,
+                displacement: 318,
                 horsepower: 150.0,
-                weight: 4096.0,
+                weight: 4096,
                 acceleration: 13.0,
                 model_year: 71,
                 origin: 1,
-                car_name: String::from("plymouth fury iii"),
             },
             TargetVar {
-                mpg: 14.0
+                mpg: 14
             }
         ));
     }

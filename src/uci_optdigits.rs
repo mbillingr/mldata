@@ -207,7 +207,7 @@ mod tests {
 
     #[test]
     fn canonical() {
-        let data = DataSet::new().download(false).create().unwrap();
+        let data = DataSet::new().download(true).create().unwrap();
         let (x_test, y_test) = data.load_testing_data().unwrap().into_canonical();
         assert_eq!(x_test.shape(), [946, 32 * 32]);
         assert_eq!(y_test.shape(), [946, 1]);

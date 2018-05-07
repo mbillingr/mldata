@@ -168,7 +168,7 @@ mod tests {
 
     #[test]
     fn load() {
-        let data = DataSet::new().download(false).create().unwrap();
+        let data = DataSet::new().download(true).create().unwrap();
         let tst = data.load_data().unwrap();
         assert_eq!(tst.n_samples, 150);
         // check class labels of a few specific samples
@@ -179,7 +179,7 @@ mod tests {
 
     #[test]
     fn canonical() {
-        let data = DataSet::new().download(false).create().unwrap();
+        let data = DataSet::new().download(true).create().unwrap();
 
         let (x, y) = data.load_data().unwrap().into_canonical();
         assert_eq!(x.shape(), [150, 4]);
