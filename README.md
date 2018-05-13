@@ -45,9 +45,13 @@ fn main() {
 ```
 
 ## Available Data Sets
-- [Auto MPG](http://archive.ics.uci.edu/ml/datasets/Auto+MPG)
-- [Iris](https://archive.ics.uci.edu/ml/datasets/iris)
-- [Optical Recognition of Handwritten Digits](https://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits)
+- UCI
+  - [Auto MPG](http://archive.ics.uci.edu/ml/datasets/Auto+MPG)
+  - [Iris](https://archive.ics.uci.edu/ml/datasets/iris)
+  - [Optical Recognition of Handwritten Digits](https://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits)
+- mldata.org
+  - [Auto MPG](http://mldata.org/repository/data/viewslug/uci-20070111-autompg/)
+  - [MNIST](http://mldata.org/repository/data/viewslug/mnist-original/)
 
 ## Cache
 By default data is loaded from (and downloaded into) the user data directory. This has the advantage, that 
