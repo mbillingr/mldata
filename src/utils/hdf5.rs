@@ -165,6 +165,42 @@ impl Dataset {
             }
         }
     }
+
+    pub fn read_i32(&self) -> Result<Array<i32, IxDyn>> {
+        let datatype = self.get_type();
+        let space = self.get_space();
+        let shape = space.shape()?;
+
+        let size = shape.iter().product();
+
+        unsafe {
+            if datatype.equal_id(H5T_NATIVE_INT32) {
+                let data = self.raw_read(H5T_NATIVE_INT32, size)?;
+                let array = Array::from_shape_vec(IxDyn(&shape), data)?;
+                Ok(array)
+            } else {
+                Err(Error::UnsupportedDataType)
+            }
+        }
+    }
+
+    pub fn read_f64(&self) -> Result<Array<f64, IxDyn>> {
+        let datatype = self.get_type();
+        let space = self.get_space();
+        let shape = space.shape()?;
+
+        let size = shape.iter().product();
+
+        unsafe {
+            if datatype.equal_id(H5T_NATIVE_DOUBLE) {
+                let data = self.raw_read(H5T_NATIVE_DOUBLE, size)?;
+                let array = Array::from_shape_vec(IxDyn(&shape), data)?;
+                Ok(array)
+            } else {
+                Err(Error::UnsupportedDataType)
+            }
+        }
+    }
 }
 
 impl Drop for Dataset {
