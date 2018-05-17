@@ -51,6 +51,7 @@ fn main() {
   - [Optical Recognition of Handwritten Digits](https://archive.ics.uci.edu/ml/datasets/Optical+Recognition+of+Handwritten+Digits)
 - mldata.org
   - [Auto MPG](http://mldata.org/repository/data/viewslug/uci-20070111-autompg/)
+  - [Boston Housing](http://mldata.org/repository/data/viewslug/regression-datasets-housing/)
   - [MNIST](http://mldata.org/repository/data/viewslug/mnist-original/)
 
 ## Cache
