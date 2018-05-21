@@ -14,6 +14,12 @@ extern crate num;
 
 extern crate reqwest;
 
+extern crate serde;
+
+#[cfg(test)]
+#[macro_use]
+extern crate serde_derive;
+
 pub mod canonical;
 pub mod common;
 pub mod utils;
