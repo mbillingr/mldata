@@ -3,17 +3,16 @@
 use std::io;
 
 use app_dirs::AppDirsError;
+use arff;
 use reqwest;
 
 use ndarray::ShapeError;
-
-use utils::hdf5;
 
 #[derive(Debug)]
 pub enum Error {
     Io(io::Error),
     Download(reqwest::Error),
-    Hdf5Error(hdf5::Error),
+    ARFFError(arff::Error),
     ArrayError(ShapeError),
     DataType,
     Internal,
@@ -28,12 +27,9 @@ impl From<AppDirsError> for Error {
     }
 }
 
-impl From<hdf5::Error> for Error {
-    fn from(err: hdf5::Error) -> Error {
-        match err {
-            hdf5::Error::IoError(ioe) => Error::Io(ioe),
-            _ => Error::Hdf5Error(err)
-        }
+impl From<arff::Error> for Error {
+    fn from(err: arff::Error) -> Error {
+        Error::ARFFError(err)
     }
 }
 
