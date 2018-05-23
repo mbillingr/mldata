@@ -5,7 +5,7 @@ authors = ["mbilling"]
 
 [dependencies]
 app_dirs = "1.2"
-arff = { path = "../arff" }
+arff = { git = "https://github.com/mbillingr/arff.git" }
 ndarray = "0.11"
 num = "0.1"
 reqwest = "0.8"
