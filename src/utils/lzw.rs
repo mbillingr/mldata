@@ -235,7 +235,14 @@ mod tests {
         check_file("data/00000000001111100000.txt.Z", "00000000001111100000\n");
 
         let mut five = String::new();
-        fs::File::open("data/5.txt").unwrap().read_to_string(&mut five).unwrap();
+        fs::File::open("data/5.txt").unwrap()
+            .read_to_string(&mut five).unwrap();
+
+        let five: String = five
+            .chars()
+            .filter(|&ch| ch != '\r')
+            .collect();
+
         check_file("data/5.txt.Z", &five);
     }
 }
