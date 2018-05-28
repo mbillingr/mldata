@@ -6,7 +6,7 @@ use std::path;
 
 use app_dirs::*;
 use arff;
-use ndarray::{Array1, Array2, Axis, Zip};
+use ndarray::{Array1, Array2, ArrayView1, ArrayView2, ArrayView3, Axis, ShapeBuilder};
 
 use utils::downloader::assure_file;
 use utils::error::Error;
@@ -76,8 +76,15 @@ impl DataSetLoader {
         let mut input = String::new();
         file.read_to_string(&mut input)?;
 
-        let data = arff::from_str(&input)?;
-        Ok(data)
+        let raw_data: Vec<u8> = arff::flat_from_str(&input)?;
+
+        /*let x = ArrayView2::from_shape([70000, 784].strides([785, 1]), &raw_data[..])?;
+        let x2d = ArrayView3::from_shape([70000, 28, 28].strides([785, 28, 1]), raw_data.as_ref())?;
+        let y = ArrayView1::from_shape([70000].strides([785]), raw_data.as_ref())?;*/
+
+        Ok(MNISTData{
+            raw_data,
+        })
     }
 }
 
@@ -86,31 +93,38 @@ impl DataSetLoader {
 pub struct MNISTRow([[u8; 28]; 28], u8);
 
 /// The MNIST data set
-pub type MNISTData = Vec<MNISTRow>;
+pub struct MNISTData {
+    raw_data: Vec<u8>,
+}
+
+impl MNISTData {
+    pub fn x(&self) -> ArrayView2<u8> {
+        ArrayView2::from_shape([70000, 784].strides([785, 1]), &self.raw_data[..]).unwrap()
+    }
+
+    pub fn x2d(&self) -> ArrayView3<u8> {
+        ArrayView3::from_shape([70000, 28, 28].strides([785, 28, 1]), &self.raw_data[..]).unwrap()
+    }
+
+    pub fn y(&self) -> ArrayView1<u8> {
+        ArrayView1::from_shape([70000].strides([785]), &self.raw_data[784..]).unwrap()
+    }
+}
 
 impl CanonicalData for MNISTData {
     fn to_canonical(&self) -> (Array2<f64>, Array2<f64>) {
-        let mut x = Array2::zeros([self.len(), 784]);
-        let mut y = Array2::zeros((self.len(), 1));
+        let mut x = Array2::zeros([70000, 784]);
+        let mut y = Array2::zeros((70000, 1));
 
-        Zip::from(x.outer_iter_mut())
-            .and(y.outer_iter_mut())
-            .and(&self[..])
-            .apply(|mut xi, mut yi, img| {
-                for (x, p) in
-                    xi
-                        .iter_mut()
-                        .zip(img.0
-                            .iter()
-                            .flat_map(|row| row.iter()))
-                    {
-                    *x = *p as f64;
-                }
+        for (xo, xi) in x.iter_mut().zip(self.x().iter()) {
+            *xo = *xi as f64
+        }
 
-                yi[0] = img.1 as f64;
-            });
+        for (yo, yi) in y.iter_mut().zip(self.y().iter()) {
+            *yo = *yi as f64
+        }
 
-        (x.into_shape((self.len(), 784)).unwrap(), y)
+        (x, y)
     }
 }
 
@@ -122,17 +136,21 @@ mod tests {
     fn load() {
         let data = DataSet::new().download(true).create().unwrap();
         let mnist = data.load_data().unwrap();
-        assert_eq!(mnist.len(), 70000);
 
-        assert_eq!(mnist[42].1, 7);
+        let x = mnist.x();
+        let x2d = mnist.x2d();
+        let y = mnist.y();
 
-        let x: Vec<_> = mnist[42].0
-            .iter()
-            .flat_map(|row| row.iter())
-            .map(|p|*p)
-            .collect();
+        assert_eq!(x.raw_dim(), [70000, 784]);
+        assert_eq!(x2d.raw_dim(), [70000, 28, 28]);
+        assert_eq!(y.raw_dim(), [70000]);
 
-        assert_eq!(x, X_42.to_vec());
+        let x_ref =  ArrayView1::from_shape(784, &X_42).unwrap();
+        let x2_ref =  ArrayView2::from_shape((28, 28), &X_42).unwrap();
+
+        assert_eq!(x.subview(Axis(0), 42), x_ref);
+        assert_eq!(x2d.subview(Axis(0), 42), x2_ref);
+        assert_eq!(y[42], 7);
     }
 
     #[test]
@@ -145,6 +163,7 @@ mod tests {
 
         let xv = X_42.iter().map(|&u| u as f64).collect();
         assert_eq!(x.subview(Axis(0), 42), Array1::from_shape_vec(784, xv).unwrap());
+        assert_eq!(y[(42, 0)], 7.0);
     }
 
     const X_42: [u8; 784] = [
