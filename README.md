@@ -1,6 +1,9 @@
 # mldata
 Rust crate for loading machine learning data sets.
 
+This project is discontinued in favor of [`openml-rust`](https://crates.io/crates/openml): https://github.com/mbillingr/openml-rust
+
+
 ### Goals
 - Allowing easy access to popular machine learning data sets in rust.
 - Load locally stored data but download on demand.
